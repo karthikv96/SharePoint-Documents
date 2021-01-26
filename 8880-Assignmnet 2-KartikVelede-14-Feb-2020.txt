@@ -1,0 +1,843 @@
+-- Assignment #2 - Family Doctor Practice Database Modifications
+
+--2.1 Add PatientEmail cloumn to the Patients Table
+
+Alter table  patient add PatientEmail varchar(150)
+
+--2.2 Add OnTime  colunm  to the AppointmentDetail table
+
+Alter table AppointmentDetail add Ontime varchar(5)
+
+--2.3.1 Add new stored procedures for patienttable
+
+	CREATE PROCEDURE AddPatient
+
+
+
+	@patientPhone VARCHAR(25),
+
+	@patientEmail varchar(150),
+
+	@healthCardNumber INT,
+
+	@patientDOB DATE,
+
+	@patientGender CHAR(1) ,
+
+	@patientStreet VARCHAR(200) ,
+
+	@patientCity VARCHAR(75),
+
+	@provincename char(2),
+
+	@patientPostalCode VARCHAR(15),
+
+	@patientFirstName VARCHAR(50) ,
+
+	@patientLastName VARCHAR(100) 
+
+
+
+
+
+	
+
+AS BEGIN
+
+	BEGIN TRANSACTION
+
+
+
+		BEGIN TRY
+
+		DECLARE @provinceID INT
+
+			SELECT @provinceID = ProvinceID FROM Province WHERE ProvinceName = @provincename
+
+
+
+			INSERT INTO Patient (PatientPhone, PatientEmail,HealthCardNumber, PatientDOB, PatientGender, PatientStreet, PatientCity, ProvinceID, PatientPostalCode, PatientFirstName, PatientLastName )
+
+			VALUES ( 
+
+	@patientPhone,
+
+	@patientEmail,
+
+	@healthCardNumber,
+
+	@patientDOB,
+
+	@patientGender,
+
+	@patientStreet ,
+
+	@patientCity,
+
+	@provinceID,
+
+	@patientPostalCode,
+
+	@patientFirstName ,
+
+	@patientLastName 
+
+	
+
+	)
+
+			
+
+			COMMIT TRANSACTION
+
+
+
+		END TRY
+
+
+
+		BEGIN CATCH
+
+
+
+			ROLLBACK TRANSACTION
+
+
+
+		END CATCH
+
+
+
+	
+
+END
+
+GO
+
+
+
+--2.3.2 Add stored procedue for appoitment table
+
+
+
+CREATE PROCEDURE AddAppointment
+
+
+
+	@healthCardNumber INT,
+
+	@appointmentDate DATETIME,
+
+	@reminderRequired bit
+
+	@appointmentNumber INT ,
+
+	@reasonforvisit nvarchar(150),
+
+	 
+
+AS BEGIN
+
+	BEGIN TRANSACTION
+
+
+
+		BEGIN TRY
+
+		DECLARE @patientID INT
+
+			SELECT @patientID = PatientID FROM Patient WHERE HealthCardNumber = @healthCardNumber
+
+
+
+			INSERT INTO Appointment( PatientID,AppointmentDate, ReminderRequired, AppointmentNumber, ReasonForVisit )
+
+			VALUES ( @patientID ,
+
+	@appointmentDate,
+
+	@reminderRequired
+
+	@appointmentNumber ,
+
+	@reasonforvisit
+
+	)
+
+			
+
+			COMMIT TRANSACTION
+
+
+
+		END TRY
+
+
+
+		BEGIN CATCH
+
+
+
+			ROLLBACK TRANSACTION
+
+
+
+		END CATCH
+
+
+
+	
+
+END
+
+
+-- 2.3.3 CHANGE Appointment Procedure
+
+
+
+CREATE PROCEDURE ChangeAppointment
+
+
+	@appointmentNumber INT 
+	@appointmentDate DATETIME,
+
+	
+
+	
+AS BEGIN
+
+	BEGIN TRANSACTION
+
+
+
+		BEGIN TRY
+
+		
+
+			UPDATE Appointment SET 
+
+			AppointmentDate = @appointmentDate   WHERE AppointmentNumber = @appointmentNumber
+
+
+			COMMIT TRANSACTION
+
+
+
+		END TRY
+
+
+
+		BEGIN CATCH
+
+
+
+			ROLLBACK TRANSACTION
+
+
+
+		END CATCH
+	
+
+END
+
+
+-- 2.3.4 Create a procedure to delete appointment from appoinment table
+
+
+CREATE PROCEDURE DeleteAppointment
+
+
+	@appointmentNumber INT
+
+	
+
+AS BEGIN
+
+	BEGIN TRANSACTION
+
+
+
+		BEGIN TRY
+
+		
+
+			DELETE FROM Appointment  
+
+			WHERE AppointmentNumber = @appointmentNumber
+		
+
+			COMMIT TRANSACTION
+
+
+
+		END TRY
+
+
+
+		BEGIN CATCH
+
+
+
+			ROLLBACK TRANSACTION
+
+
+
+		END CATCH
+
+
+
+	
+
+END
+
+GO
+
+
+
+
+
+-- 2.3.5 Create a procedure for appointmentdetail
+
+
+
+
+
+
+CREATE PROCEDURE CompleteAppointment
+
+
+	
+	@visitLength INT ,
+
+	@visitNotes VARCHAR(1500),
+
+	@appointmentNumber INT ,
+
+	@Ontime VARCHAR(5),
+
+	@medicationName VARCHAR(150)
+
+	
+
+	
+
+	
+
+AS BEGIN
+
+	BEGIN TRANSACTION
+
+
+
+		BEGIN TRY
+
+		
+
+		DECLARE @medicationID INT
+
+			SELECT @medicationID = MedicationID FROM Medication WHERE MedicationName = @medicationName
+
+
+
+INSERT INTO AppointmentDetail(VisitLength, VisitNotes,AppointmentNumber, OnTime, MedicationID )
+
+	VALUES ( @visitLength, @visitNotes,@appointmentNumber, @Ontime, @medicationID)
+
+	
+
+			
+
+			COMMIT TRANSACTION
+
+
+
+		END TRY
+
+
+
+		BEGIN CATCH
+
+
+
+			ROLLBACK TRANSACTION
+
+
+
+		END CATCH
+
+
+
+	
+
+END
+
+GO
+
+
+
+
+
+-- 2.3.6 Create a procedure to update billings details in appointmentdetail table
+
+
+
+
+CREATE PROCEDURE BillAppointment
+
+
+
+@appointmentNumber INT,
+
+	@billAmount INT ,
+
+	@billDate DateTime
+
+	
+
+	
+
+
+
+	
+
+AS BEGIN
+
+	BEGIN TRANSACTION
+
+
+
+		BEGIN TRY
+
+		
+
+			UPDATE AppointmentDetail SET 
+
+			BillAmount = @billAmount , BillDate = @billdate   WHERE AppointmentNumber = @appointmentNumber
+
+
+
+			
+
+		
+
+			COMMIT TRANSACTION
+
+
+
+		END TRY
+
+
+
+		BEGIN CATCH
+
+
+
+			ROLLBACK TRANSACTION
+
+
+
+		END CATCH
+
+
+
+	
+
+END
+
+GO
+
+
+
+
+
+-- 2.4 Add New Patient to created procedure
+
+
+
+EXEC AddPatient
+
+
+
+	@patientPhone=5198848000,
+
+	@patientEmail =null ,
+
+	@healthCardNumber=129483447,
+
+	@patientDOB='Oct 4,1969',
+
+	@patientGender ='M' ,
+
+	@patientStreet='KIng St S' ,
+
+	@patientCity ='Kitchener',
+
+	@provincename='ON',
+
+	@patientPostalCode='N2I 2M4',
+
+	@patientFirstName='Mary',
+
+	@patientLastName='Sue'
+
+
+exec addpatient	
+
+
+
+	@patientPhone=5196678500,
+
+	@patientEmail ='cmcmann@rogers.com',
+
+	@healthCardNumber=234144,
+
+	@patientDOB='Nov 11,1981',
+
+	@patientGender ='M' ,
+
+	@patientStreet='PineBush Rd' ,
+
+	@patientCity ='Cambridge',
+
+	@provincename='ON',
+
+	@patientPostalCode='N2R 1M1',
+
+	@patientFirstName='Chris',
+
+	@patientLastName='MacMann'
+
+	
+exec addpatient
+	
+
+	@patientPhone=5195881344,
+
+	@patientEmail ='kclinton@hotmail.com',
+
+	@healthCardNumber=1234555,
+
+	@patientDOB='Dec 5,2000',
+
+	@patientGender ='M' ,
+
+	@patientStreet='ERB St E' ,
+
+	@patientCity ='Waterloo',
+
+	@provincename='ON',
+
+	@patientPostalCode='N4R 4O4',
+
+	@patientFirstName='Karen',
+
+	@patientLastName='Clinton'
+
+	
+
+	
+
+	
+
+-- 2.5 Complete Appointment and Bill Execution
+
+
+
+EXEC CompleteAppointment
+
+
+
+	@visitLength=20 ,
+
+	@visitNotes='Hands were burnt during cooking accident, bandaged up the scars and sent home for rest',
+
+	@appointmentNumber=10013,
+
+	@Ontime='YES',
+
+	@medicationName='Tylenol 3'
+
+	
+
+	
+
+	EXEC BillAppointment
+
+
+
+
+
+	@billAmount=1200 ,
+
+	@billDate='2019-04-04 18:00' ,
+
+	@appointmentNumber= 10013
+
+	
+
+
+
+EXEC CompleteAppointment
+
+
+
+
+
+	@visitLength=30 ,
+
+	@visitNotes='Patient is complaining about a sore foot when walking in heels.  Noticed quite a bit of swelling and ask patient to use different shoes.',
+
+	@appointmentNumber=10014,
+
+	@Ontime='NO',
+
+	@medicationName=NUll,
+
+	
+
+	
+
+	
+
+	EXEC BillAppointment
+
+
+
+	@appointmentNumber= 10014
+
+	@billAmount=1800 ,
+
+	@billDate='2019-04-04 18:00' 
+
+	
+
+	
+
+
+
+-- 2.5 Complete and bill new appointment execution
+
+
+
+EXEC CompleteAppointment
+
+
+
+	@visitLength=20 ,
+
+	@visitNotes='Hands were burnt during cooking accident, bandaged up the scars and sent home for rest',
+
+	@appointmentNumber=10013,
+
+	@Ontime='YES',
+
+	@medicationName='Tylenol 3'
+
+	
+
+	
+
+	EXEC BillAppointment
+
+
+
+
+
+	@billAmount=1200 ,
+
+	@billDate='2019-04-04 18:00' ,
+
+	@appointmentNumber= 10013
+
+	
+
+
+
+EXEC CompleteAppointment
+
+
+
+
+
+	@visitLength=30 ,
+
+	@visitNotes='Patient is complaining about a sore foot when walking in heels.  Noticed quite a bit of swelling and ask patient to use different shoes.',
+
+	@appointmentNumber=10014,
+
+	@Ontime='NO',
+
+	@medicationName=NUll
+
+	
+
+	
+
+	EXEC BillAppointment
+
+
+
+
+
+	@billAmount=1800 ,
+
+	@billDate='2019-04-04 18:00' ,
+
+	@appointmentNumber= 10014
+
+	
+
+	
+
+-- 2.6 Create,Complete and Bill new appointment
+
+
+
+EXEC AddAppointment
+
+
+
+@healthcardnumber= 129483447,
+
+@appointmentDate='2019-04-05 18:05',
+
+@reminderRequired='YES',
+
+@appointmentNumber=10015,
+
+@reasonforvisit='Large Cut on foreman'
+
+
+
+EXEC CompleteAppointment
+
+
+
+
+
+	@visitLength=20 ,
+
+	@visitNotes='Patient is complaining about a sore foot when walking in heels.  Noticed quite a bit of swelling and ask patient to use different shoes.',
+
+	@appointmentNumber=10015,
+
+	@Ontime='NO',
+
+	@medicationName=NUll
+
+	
+
+	
+
+	EXEC BillAppointment
+
+
+
+
+
+	@billAmount=1200 ,
+
+	@billDate='2019-04-05 18:05' ,
+
+	@appointmentNumber= 10015
+
+	
+
+	
+
+
+
+EXEC AddAppointment
+
+
+
+@healthcardnumber= 1234555,
+
+@appointmentDate='2019-04-03 18:05',
+
+@reminderRequired='YES' ,
+
+@appointmentNumber=10016,
+
+@reasonforvisit='Physical'
+
+
+
+EXEC CompleteAppointment
+
+
+
+
+
+	@visitLength=45 ,
+
+	@visitNotes='Patient’s blood pressure seemed high so ran a few tests and ran some blood work.  Everything else in the normal range.',
+
+	@appointmentNumber=10016,
+
+	@Ontime='YES',
+
+	@medicationName=NUll
+
+	
+
+	
+
+	EXEC BillAppointment
+
+
+
+
+
+	@billAmount=2400 ,
+
+	@billDate='2019-04-05 18:05' ,
+
+	@appointmentNumber= 10016
+
+
+
+
+
+-- 2.7.1 SUM of the billing for april
+
+
+
+SELECT SUM(BillAmount) AS TotalBill
+
+FROM AppointmentDetail
+
+WHERE BillDate >= 2019-04-31 
+
+
+
+-- 2.7.2 AVG of the visitLength
+
+
+
+SELECT AVG(VisitLength) AS AvgVisitLength
+
+FROM AppointmentDetail
+
+
+
+
+
+-- 2.7.3 COUNT of the all presecribed medication
+
+
+
+Select MedicationID,
+
+COUNT(MedicationID) As MedicationIDCount
+
+from AppointmentDetail
+
+Where MedicationID is not null
+
+group by MedicationID
+
+order by MedicationID desc
+
+
+

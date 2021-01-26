@@ -1,0 +1,21 @@
+h2.ms-webpart-titletext.ms-webpart-titletext, .ms-webpart-titletext > a {
+color: #cb534F;
+}
+
+.ms-core-pageTitle {
+
+color: #c48f22;
+font-size: 25pt;
+font-family:open -sans,sans-serif;
+font-style: bold;
+text-transform: uppercase;
+
+}
+
+a, .ms-link {
+
+font-size: 15pt;
+font-family: sans-serif;
+font-style:italic;
+color: #53A586;
+}
